@@ -1,7 +1,7 @@
 #include "vector.h"
 
-Vector* vector(int arr[], int arr_size) {
-    size_t size = arr_size;
+Vector* vector(int arr[], unsigned int arr_size) {
+    unsigned int size = arr_size;
     size_t capacity = 2 * size * sizeof(int);
     int* data = (int*)malloc(capacity);
     if (size == 0) {
@@ -37,7 +37,7 @@ void clear_vec(Vector* vec) {
 }
 
 Vector* copy_vec(Vector* vec) {
-    size_t size = vec->size;
+    unsigned int size = vec->size;
     int data[size];
     for (int i=0; i<size; i++) {
         data[i] = vec->data[i];
@@ -50,7 +50,7 @@ Vector* copy_vec(Vector* vec) {
 int pop(unsigned int idx, Vector* vec) {
     assert(idx >= 0 && idx < vec->size);
     int num = vec->data[idx];
-    size_t new_size = vec->size - 1;
+    unsigned int new_size = vec->size - 1;
     for (int i=idx; i<new_size; i++) {
         vec->data[i] = vec->data[i+1];
     }
@@ -61,7 +61,7 @@ int pop(unsigned int idx, Vector* vec) {
 
 void insert_num(int num, unsigned int idx, Vector* vec) {
     assert(idx >= 0 && idx <= vec->size);
-    size_t new_size = vec->size + 1;
+    unsigned int new_size = vec->size + 1;
     size_t req_capacity = new_size * sizeof(int);
     if (req_capacity > vec->capacity) {
         vec->capacity = 2 * req_capacity;
@@ -94,7 +94,7 @@ unsigned int count_vec(int value, Vector* vec) {
 }
 
 void join_vec(Vector* vec1, Vector* vec2) {
-    size_t new_size = vec1->size + vec2->size;
+    unsigned int new_size = vec1->size + vec2->size;
     size_t req_capacity = new_size * sizeof(int);
     if (req_capacity > vec1->capacity) {
         vec1->capacity = 2 * req_capacity;
@@ -156,7 +156,7 @@ void debug_vec(Vector* vec) {
     printf("Data: ");
     print_vec(vec); printf("\n");
     printf("Addr: %p\n", vec);
-    printf("Size: %ld\n", vec->size);
+    printf("Size: %d\n", vec->size);
     printf("Capacity: %ld B\n", vec->capacity);
 }
 
@@ -167,11 +167,12 @@ bool is_empty(Vector* vec) {
     return false;
 }
 
-int get_len(Vector* vec) {
+unsigned int get_len(Vector* vec) {
     return vec->size;
 }
 
 int get_element(unsigned int idx, Vector* vec) {
+    assert(idx >= 0 && idx < vec->size);
     return vec->data[idx];
 }
 
@@ -186,7 +187,7 @@ int get_last(Vector* vec) {
 Vector* get_slice(unsigned int start, unsigned int stop, Vector* vec) {
     assert(start >= 0 && start < vec->size);
     assert(stop > start && stop <= vec->size);
-    size_t size = stop - start;
+    unsigned int size = stop - start;
     int data[size];
     for (int i=0; i<size; i++) {
         data[i] = vec->data[i + start];

@@ -4,12 +4,12 @@
 #include <assert.h>
 
 typedef struct Vector {
-    size_t size;
+    unsigned int size;
     size_t capacity;
     int* data;
 } Vector;
 
-Vector* vector(int arr[], int arr_size);
+Vector* vector(int arr[], unsigned int arr_size);
 
 void delete_vec(Vector* vec);
 
@@ -41,7 +41,7 @@ void debug_vec(Vector* vec);
 
 bool is_empty(Vector* vec);
 
-int get_len(Vector* vec);
+unsigned int get_len(Vector* vec);
 
 int get_element(unsigned int idx, Vector* vec);
 
@@ -50,4 +50,3 @@ int get_first(Vector* vec);
 int get_last(Vector* vec);
 
 Vector* get_slice(unsigned int start, unsigned int stop, Vector* vec);
-
