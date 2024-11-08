@@ -1,6 +1,6 @@
 #include "vector.h"
 
-Vector* vector(int arr[], unsigned int arr_size) {
+Vector vector(int arr[], unsigned int arr_size) {
     unsigned int size = arr_size;
     size_t capacity = 2 * size * sizeof(int);
     int* data = (int*)malloc(capacity);
@@ -13,10 +13,11 @@ Vector* vector(int arr[], unsigned int arr_size) {
         }
     }
 
-    Vector* vec = (Vector*)malloc(sizeof(Vector));
-    vec->size = size;
-    vec->capacity = capacity;
-    vec->data = data;
+    Vector vec = {
+        .size = size,
+        .capacity = capacity,
+        .data = data
+    };
 
     return vec;
 }
@@ -36,15 +37,15 @@ void clear_vec(Vector* vec) {
     vec->size = 0;
 }
 
-Vector* copy_vec(Vector* vec) {
+Vector copy_vec(Vector* vec) {
     unsigned int size = vec->size;
     int data[size];
     for (int i=0; i<size; i++) {
         data[i] = vec->data[i];
     }
-    Vector* copy_vec = vector(data, size);
+    Vector vec_copy = vector(data, size);
 
-    return copy_vec;
+    return vec_copy;
 }
 
 int pop(unsigned int idx, Vector* vec) {
@@ -184,7 +185,7 @@ int get_last(Vector* vec) {
     return vec->data[vec->size - 1];
 }
 
-Vector* get_slice(unsigned int start, unsigned int stop, Vector* vec) {
+Vector get_slice(unsigned int start, unsigned int stop, Vector* vec) {
     assert(start >= 0 && start < vec->size);
     assert(stop > start && stop <= vec->size);
     unsigned int size = stop - start;
@@ -192,7 +193,7 @@ Vector* get_slice(unsigned int start, unsigned int stop, Vector* vec) {
     for (int i=0; i<size; i++) {
         data[i] = vec->data[i + start];
     }
-    Vector* slice = vector(data, size);
+    Vector slice = vector(data, size);
 
     return slice;
 }

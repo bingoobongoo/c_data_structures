@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -9,13 +11,13 @@ typedef struct Vector {
     int* data;
 } Vector;
 
-Vector* vector(int arr[], unsigned int arr_size);
+Vector vector(int arr[], unsigned int arr_size);
 
 void delete_vec(Vector* vec);
 
 void clear_vec(Vector* vec);
 
-Vector* copy_vec(Vector* vec);
+Vector copy_vec(Vector* vec);
 
 int pop(unsigned int idx, Vector* vec);
 
@@ -49,4 +51,4 @@ int get_first(Vector* vec);
 
 int get_last(Vector* vec);
 
-Vector* get_slice(unsigned int start, unsigned int stop, Vector* vec);
+Vector get_slice(unsigned int start, unsigned int stop, Vector* vec);

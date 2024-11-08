@@ -23,10 +23,10 @@ Vector has 3 fields:
 ### vector
 
 ```c
-Vector* vector(int arr[], unsigned int arr_size)
+Vector vector(int arr[], unsigned int arr_size)
 ```
 
-Creates new Vector object, allocating `2 * arr_size * sizeof(int)` bytes of memory on heap. Returns pointer to created `Vector`.
+Creates new Vector object, allocating `2 * arr_size * sizeof(int)` bytes of memory on heap. Returns created `Vector`.
 
 ### delete_vec
 
@@ -47,10 +47,10 @@ Deletes all elements of `vec`. Frees memory allocated to a `data` array of `vec`
 ### copy_vec
 
 ```c
-Vector* copy_vec(Vector* vec)
+Vector copy_vec(Vector* vec)
 ```
 
-Creates copy of existing `vec`.
+Creates copy of existing `vec` and returns it.
 
 ### pop
 
@@ -183,7 +183,7 @@ Returns last element of `vec`.
 ### get_slice
 
 ```c
-Vector* get_slice(unsigned int start, unsigned int stop, Vector* vec)
+Vector get_slice(unsigned int start, unsigned int stop, Vector* vec)
 ```
 
-Return a pointer to `Vector`, that is created from a slice of `vec`, such that first element of new `Vector` is **vec[start]** and last one is **vec[stop-1]**.
+Return a `Vector`, that is created from a slice of `vec`, such that first element of new `Vector` is **vec[start]** and last one is **vec[stop-1]**.
