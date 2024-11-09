@@ -1,10 +1,9 @@
 #include "vector.h"
 
-Vector vector(int arr[], unsigned int arr_size) {
-    unsigned int size = arr_size;
-    size_t capacity = 2 * size * sizeof(int);
+Vector* vector(int arr[], unsigned int arr_size) {
+    size_t capacity = 2 * arr_size * sizeof(int);
     int* data = (int*)malloc(capacity);
-    if (size == 0) {
+    if (arr_size == 0) {
         data = NULL;
     }
     else {
@@ -13,37 +12,50 @@ Vector vector(int arr[], unsigned int arr_size) {
         }
     }
 
-    Vector vec = {
-        .size = size,
-        .capacity = capacity,
-        .data = data
-    };
+    Vector* vec = (Vector*)malloc(sizeof(Vector));
+    vec->size = arr_size;
+    vec->capacity = capacity;
+    vec->data = data;
 
     return vec;
 }
 
-void delete_vec(Vector* vec) {
-    free(vec->data);
-    vec->data = NULL;
+Vector* vector_with_capacity(int arr[], unsigned int arr_size, size_t capacity) {
+    assert(capacity >= arr_size * sizeof(int));
+    int* data = (int*)malloc(capacity);
+    for (int i=0; i<arr_size; i++) {
+        data[i] = arr[i];
+    }
 
-    free(vec);
-    vec = NULL;
+    Vector* vec = (Vector*)malloc(sizeof(Vector));
+    vec->size = arr_size;
+    vec->capacity = capacity;
+    vec->data = data;
+
+    return vec;
 }
-
+ 
 void clear_vec(Vector* vec) {
     free(vec->data);
     vec->data = NULL;
 
     vec->size = 0;
+    vec->capacity = 0;
 }
 
-Vector copy_vec(Vector* vec) {
+void delete_vec(Vector* vec) {
+    clear_vec(vec);
+    free(vec);
+    vec = NULL;
+}
+
+Vector* copy_vec(Vector* vec) {
     unsigned int size = vec->size;
     int data[size];
     for (int i=0; i<size; i++) {
         data[i] = vec->data[i];
     }
-    Vector vec_copy = vector(data, size);
+    Vector* vec_copy = vector(data, size);
 
     return vec_copy;
 }
@@ -73,6 +85,23 @@ void insert_num(int num, unsigned int idx, Vector* vec) {
     }
     vec->data[idx] = num;
     vec->size = new_size;
+}
+
+void insert_vec(Vector* from, Vector* into, int idx) {
+    assert(idx >= 0 && idx <= into->size);
+    unsigned int new_size = from->size + into->size;
+    size_t req_capacity = new_size * sizeof(int);
+    if (req_capacity > into->capacity) {
+        into->capacity = 2 * req_capacity;
+        into->data = (int*)realloc(into->data, into->capacity);
+    }
+    for (int i=into->size - 1; i>=idx; i--) {
+        into->data[i + from->size] = into->data[i];
+    }
+    for (int i=idx; i<=from->size; i++) {
+        into->data[i] = from->data[i - idx];
+    }
+    into->size = new_size;
 }
 
 void push(int num, Vector* vec) {
@@ -141,6 +170,10 @@ void remove_value(int value, Vector* vec) {
 }
 
 void print_vec(Vector* vec) {
+    if (vec->size == 0) {
+        printf("[]");
+        return;
+    }
     printf("[");
     for (int i=0; i<vec->size; i++) {
         printf("%d", vec->data[i]);
@@ -168,6 +201,11 @@ bool is_empty(Vector* vec) {
     return false;
 }
 
+void set_element(int value, unsigned int idx, Vector* vec) {
+    assert(idx >=0 && idx < vec->size);
+    vec->data[idx] = value;
+}
+
 unsigned int get_len(Vector* vec) {
     return vec->size;
 }
@@ -185,7 +223,7 @@ int get_last(Vector* vec) {
     return vec->data[vec->size - 1];
 }
 
-Vector get_slice(unsigned int start, unsigned int stop, Vector* vec) {
+Vector* get_slice(unsigned int start, unsigned int stop, Vector* vec) {
     assert(start >= 0 && start < vec->size);
     assert(stop > start && stop <= vec->size);
     unsigned int size = stop - start;
@@ -193,7 +231,7 @@ Vector get_slice(unsigned int start, unsigned int stop, Vector* vec) {
     for (int i=0; i<size; i++) {
         data[i] = vec->data[i + start];
     }
-    Vector slice = vector(data, size);
+    Vector* slice = vector(data, size);
 
     return slice;
 }
