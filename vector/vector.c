@@ -34,6 +34,17 @@ Vector* vector_with_capacity(int arr[], unsigned int arr_size, size_t capacity) 
 
     return vec;
 }
+
+Vector* zero_vector(unsigned int length) {
+    int data[length];
+    for (int i=0; i<length; i++) {
+        data[i] = 0;
+    }
+    size_t capacity = length * sizeof(int);
+    Vector* vec = vector_with_capacity(data, length, capacity);
+    
+    return vec;
+}
  
 void clear_vec(Vector* vec) {
     free(vec->data);

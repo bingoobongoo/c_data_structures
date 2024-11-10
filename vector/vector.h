@@ -15,6 +15,8 @@ Vector* vector(int arr[], unsigned int arr_size);
 
 Vector* vector_with_capacity(int arr[], unsigned int arr_size, size_t capacity);
 
+Vector* zero_vector(unsigned int length);
+
 void clear_vec(Vector* vec);
 
 void delete_vec(Vector* vec);

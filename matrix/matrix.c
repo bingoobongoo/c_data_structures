@@ -15,6 +15,26 @@ Matrix* matrix(Vector* rows[], unsigned int n_rows) {
     mat->rows = vectors;
     mat->height = n_rows;
     mat->width = vectors[0]->size;
+    mat->size = mat->height * mat->width;
+    mat->capacity = mat_capacity;
+
+    return mat;
+}
+
+Matrix* zero_matrix(unsigned int n_rows, unsigned int n_cols) {
+    Vector* zero_vec = zero_vector(n_cols);
+    size_t mat_capacity = sizeof(Vector*) * n_rows;
+    Vector** rows = (Vector**)malloc(mat_capacity);
+    for (int row=0; row<n_rows; row++) {
+        rows[row] = copy_vec(zero_vec);
+    }
+    delete_vec(zero_vec);
+
+    Matrix* mat = (Matrix*)malloc(sizeof(Matrix));
+    mat->rows = rows;
+    mat->height = n_rows;
+    mat->width = n_cols;
+    mat->size = n_rows * n_cols;
     mat->capacity = mat_capacity;
 
     return mat;
@@ -27,6 +47,19 @@ void delete_matrix(Matrix* mat) {
     free(mat->rows);
     free(mat);
     mat = NULL;
+}
+
+Matrix* add_matrix(Matrix* mat1, Matrix* mat2) {
+    assert(mat1->width == mat2->width && mat1->height == mat2->height);
+    Matrix* sum_mat = zero_matrix(mat1->height, mat1->width);
+    for (int row=0; row<mat1->height; row++) {
+        for (int col=0; col<mat1->width; col++) {
+            int sum = get_mat_elem(row, col, mat1) + get_mat_elem(row, col, mat2);
+            set_mat_elem(sum, row, col, sum_mat);    
+        }
+    }
+
+    return sum_mat;
 }
 
 void print_matrix(Matrix* mat) {
@@ -58,11 +91,23 @@ void print_matrix(Matrix* mat) {
 
 void debug_matrix(Matrix* mat) {
     printf("Data:\n");
-    print_matrix(mat); printf("\n");
+    print_matrix(mat);
+    printf("Dismensions: [%dx%d]\n", mat->height, mat->width);
+    printf("Size: %d\n", mat->size);
     printf("Addr: %p\n", mat);
-    printf("Height: %d\n", mat->height);
-    printf("Width: %d\n", mat->width);
-    printf("Capacity: %ld\n", mat->capacity);
+    printf("Capacity: %ld\n\n", mat->capacity);
+}
+
+void set_mat_elem(int value, unsigned int row, unsigned int col, Matrix* mat) {
+    assert(row >=0 && row <mat->height);
+    assert(col >=0 && col <mat->width);
+    set_element(value, col, mat->rows[row]);
+}
+
+int get_mat_elem(unsigned int row, unsigned int col, Matrix* mat) {
+    assert(row >=0 && row < mat->height);
+    assert(col >=0 && col < mat->width);
+    return get_element(col, mat->rows[row]);
 }
 
 bool _is_empty_vec_in_arr(Vector* rows[], unsigned int n_rows) {
