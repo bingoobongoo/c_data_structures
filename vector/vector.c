@@ -115,7 +115,6 @@ void clear_vec(Vector* vec) {
 
     vec->length = 0;
     vec->capacity = 0;
-    vec->elem_size = 0;
 }
 
 void delete_vec(Vector* vec) {
