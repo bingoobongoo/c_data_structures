@@ -5,17 +5,26 @@
 #include <stdbool.h>
 #include <assert.h>
 
+typedef enum VecDataType {
+    VEC_INT32,
+    VEC_INT64,
+    VEC_FLOAT,
+    VEC_DOUBLE,
+} VecDataType;
+
 typedef struct Vector {
-    int* data;
-    unsigned int size;
+    void* data;
+    VecDataType data_type;
+    int elem_size;
+    int length;
     size_t capacity;
 } Vector;
 
-Vector* vector(int arr[], unsigned int arr_size);
+Vector* vector(void* arr, int length, VecDataType data_type);
 
-Vector* vector_with_capacity(int arr[], unsigned int arr_size, size_t capacity);
+Vector* vector_with_capacity(void* arr, int length, VecDataType dt, size_t cap);
 
-Vector* zero_vector(unsigned int length);
+Vector* zero_vector(int length, VecDataType dt);
 
 void clear_vec(Vector* vec);
 
@@ -23,40 +32,50 @@ void delete_vec(Vector* vec);
 
 Vector* copy_vec(Vector* vec);
 
-int pop(unsigned int idx, Vector* vec);
+void assign_vec(Vector* old_vec, Vector* new_vec);
 
-void insert_num(int num, unsigned int idx, Vector* vec);
+void pop(int idx, Vector* vec);
+
+void insert_num(Vector* vec, int idx, void* num);
 
 void insert_vec(Vector* from, Vector* into, int idx);
 
-void push(int num, Vector* vec);
+void push(Vector* vec, void* num);
 
-void push_front(int num, Vector* vec);
+void push_front(Vector* vec, void* num);
 
-unsigned int count_vec(int value, Vector* vec);
+int count_vec(Vector* vec, void* value);
 
-void join_vec(Vector* vec1, Vector* vec2);
+void append_vec(Vector* vec, Vector* other);
 
 void reverse_vec(Vector* vec);
 
-int find_value(int value, Vector* vec);
+int find_value(Vector* vec, void* value);
 
-void remove_value(int value, Vector* vec);
+void remove_value(Vector* vec, void* value);
+
+bool compare_vec_elem(void* elem, void* value, int elem_size);
 
 void print_vec(Vector* vec);
 
 void debug_vec(Vector* vec);
 
-bool is_empty(Vector* vec);
+bool is_vec_empty(Vector* vec);
 
-void set_element(int value, unsigned int idx, Vector* vec);
+void set_vec_elem(Vector* vec, int idx, void* value);
 
-unsigned int get_len(Vector* vec);
+int get_vec_len(Vector* vec);
 
-int get_element(unsigned int idx, Vector* vec);
+void* get_vec_elem(Vector* vec, int idx);
 
-int get_first(Vector* vec);
+void* get_vec_first(Vector* vec);
 
-int get_last(Vector* vec);
+void* get_vec_last(Vector* vec);
 
-Vector* get_slice(unsigned int start, unsigned int stop, Vector* vec);
+Vector* get_slice(Vector* vec, int start, int stop);
+
+void _copy_data(void* data_from, void* data_to, int length, int elem_size);
+
+void* _get_data_elem(void* data, int idx, int elem_size);
+
+void _set_data_elem(void* data, int idx, void* value, int elem_size);

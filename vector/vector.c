@@ -1,47 +1,110 @@
 #include "vector.h"
 
-Vector* vector(int arr[], unsigned int arr_size) {
-    size_t capacity = 2 * arr_size * sizeof(int);
-    int* data = (int*)malloc(capacity);
-    if (arr_size == 0) {
+Vector* vector(void* arr, int length, VecDataType data_type) {
+    int elem_size;
+    switch (data_type)
+    {
+    case VEC_INT32:
+        elem_size = sizeof(int);
+        break;
+    case VEC_INT64:
+        elem_size = sizeof(long long);
+        break;
+    case VEC_FLOAT:
+        elem_size = sizeof(float);
+        break;
+    case VEC_DOUBLE:
+        elem_size = sizeof(double);
+        break;
+    default:
+        printf("Unsupported vector data type.");
+        abort();
+    }
+
+    size_t cap = 2 * length * elem_size;
+    void* data;
+    if (arr == NULL || length == 0) {
         data = NULL;
+        cap = 0;
     }
     else {
-        for (int i=0; i<arr_size; i++) {
-            data[i] = arr[i];
-        }
+        data = malloc(cap);
+        _copy_data(arr, data, length, elem_size);
     }
 
     Vector* vec = (Vector*)malloc(sizeof(Vector));
-    vec->size = arr_size;
-    vec->capacity = capacity;
     vec->data = data;
+    vec->data_type = data_type;
+    vec->elem_size = elem_size;
+    vec->length = length;
+    vec->capacity = cap;
 
     return vec;
 }
 
-Vector* vector_with_capacity(int arr[], unsigned int arr_size, size_t capacity) {
-    assert(capacity >= arr_size * sizeof(int));
-    int* data = (int*)malloc(capacity);
-    for (int i=0; i<arr_size; i++) {
-        data[i] = arr[i];
+Vector* vector_with_capacity(void* arr, int length, VecDataType dt, size_t cap) {
+    int elem_size;
+    switch (dt)
+    {
+    case VEC_INT32:
+        elem_size = sizeof(int);
+        break;
+    case VEC_INT64:
+        elem_size = sizeof(long long);
+        break;
+    case VEC_FLOAT:
+        elem_size = sizeof(float);
+        break;
+    case VEC_DOUBLE:
+        elem_size = sizeof(double);
+        break;
+    default:
+        printf("Unsupported vector data type.");
+        abort();
+    }
+
+    assert(cap >= length*elem_size);
+    void* data = malloc(cap);
+
+    if (arr != NULL && length != 0) {
+        _copy_data(arr, data, length, elem_size);
     }
 
     Vector* vec = (Vector*)malloc(sizeof(Vector));
-    vec->size = arr_size;
-    vec->capacity = capacity;
     vec->data = data;
+    vec->data_type = dt;
+    vec->elem_size = elem_size;
+    vec->length = length;
+    vec->capacity = cap;
 
     return vec;
 }
 
-Vector* zero_vector(unsigned int length) {
-    int data[length];
-    for (int i=0; i<length; i++) {
-        data[i] = 0;
+Vector* zero_vector(int length, VecDataType dt) {
+    int elem_size;
+    switch (dt)
+    {
+    case VEC_INT32:
+        elem_size = sizeof(int);
+        break;
+    case VEC_INT64:
+        elem_size = sizeof(long long);
+        break;
+    case VEC_FLOAT:
+        elem_size = sizeof(float);
+        break;
+    case VEC_DOUBLE:
+        elem_size = sizeof(double);
+        break;
+    default:
+        printf("Unsupported vector data type.");
+        abort();
     }
-    size_t capacity = length * sizeof(int);
-    Vector* vec = vector_with_capacity(data, length, capacity);
+
+    void* tmp_data = calloc(length, elem_size);
+    size_t capacity = 2 * length * elem_size;
+    Vector* vec = vector_with_capacity(tmp_data, length, dt, capacity);
+    free(tmp_data);
     
     return vec;
 }
@@ -50,83 +113,97 @@ void clear_vec(Vector* vec) {
     free(vec->data);
     vec->data = NULL;
 
-    vec->size = 0;
+    vec->length = 0;
     vec->capacity = 0;
+    vec->elem_size = 0;
 }
 
 void delete_vec(Vector* vec) {
-    clear_vec(vec);
+    if (vec->data != NULL) {
+        clear_vec(vec);
+    }
+    vec->length = 0;
+    vec->capacity = 0;
+    vec->elem_size = 0;
     free(vec);
     vec = NULL;
 }
 
 Vector* copy_vec(Vector* vec) {
-    unsigned int size = vec->size;
-    int data[size];
-    for (int i=0; i<size; i++) {
-        data[i] = vec->data[i];
-    }
-    Vector* vec_copy = vector(data, size);
+    int length = vec->length;
+    void* tmp_data = malloc(vec->capacity);
+    _copy_data(vec->data, tmp_data, length, vec->elem_size);
+    Vector* vec_copy = vector_with_capacity(tmp_data, length, vec->data_type, vec->capacity);
+    free(tmp_data);
 
     return vec_copy;
 }
 
-int pop(unsigned int idx, Vector* vec) {
-    assert(idx >= 0 && idx < vec->size);
-    int num = vec->data[idx];
-    unsigned int new_size = vec->size - 1;
-    for (int i=idx; i<new_size; i++) {
-        vec->data[i] = vec->data[i+1];
-    }
-    vec->size = new_size;
-
-    return num;
+void assign_vec(Vector* old_vec, Vector* new_vec) {
+    clear_vec(old_vec);
+    old_vec->length = new_vec->length;
+    old_vec->capacity = new_vec->capacity;
+    old_vec->data_type = new_vec->data_type;
+    old_vec->elem_size = new_vec->elem_size;
+    old_vec->data = malloc(new_vec->capacity);
+    _copy_data(new_vec->data, old_vec->data, old_vec->length, old_vec->elem_size);
 }
 
-void insert_num(int num, unsigned int idx, Vector* vec) {
-    assert(idx >= 0 && idx <= vec->size);
-    unsigned int new_size = vec->size + 1;
-    size_t req_capacity = new_size * sizeof(int);
+void pop(int idx, Vector* vec) {
+    assert(idx >= 0 && idx < vec->length);
+    int new_size = vec->length - 1;
+    for (int i=idx; i<new_size; i++) {
+        set_vec_elem(vec, i, get_vec_elem(vec, i+1));
+    }
+    vec->length = new_size;
+}
+
+void insert_num(Vector* vec, int idx, void* num) {
+    assert(idx >= 0 && idx <= vec->length);
+    int new_size = vec->length + 1;
+    size_t req_capacity = new_size * sizeof(vec->elem_size);
     if (req_capacity > vec->capacity) {
         vec->capacity = 2 * req_capacity;
-        vec->data = (int*)realloc(vec->data, vec->capacity);
+        vec->data = realloc(vec->data, vec->capacity);
     }
-    for (int i=vec->size; i>idx; i--) {
-        vec->data[i] = vec->data[i-1];
+    vec->length = new_size;
+    for (int i=vec->length-1; i>idx; i--) {
+        set_vec_elem(vec, i, get_vec_elem(vec, i-1));
     }
-    vec->data[idx] = num;
-    vec->size = new_size;
+    set_vec_elem(vec, idx, num);
 }
 
 void insert_vec(Vector* from, Vector* into, int idx) {
-    assert(idx >= 0 && idx <= into->size);
-    unsigned int new_size = from->size + into->size;
-    size_t req_capacity = new_size * sizeof(int);
+    assert(idx >= 0 && idx <= into->length);
+    assert(from->data_type == into->data_type);
+    int new_size = from->length + into->length;
+    into->length = new_size;
+    size_t req_capacity = new_size * sizeof(from->elem_size);
     if (req_capacity > into->capacity) {
         into->capacity = 2 * req_capacity;
-        into->data = (int*)realloc(into->data, into->capacity);
+        into->data = realloc(into->data, into->capacity);
     }
-    for (int i=into->size - 1; i>=idx; i--) {
-        into->data[i + from->size] = into->data[i];
+    for (int i=into->length - from->length - 1; i>=idx; i--) {
+        set_vec_elem(into, i+from->length, get_vec_elem(into, i));
     }
-    for (int i=idx; i<=from->size; i++) {
-        into->data[i] = from->data[i - idx];
+    for (int i=idx; i<idx+from->length; i++) {
+        set_vec_elem(into, i, get_vec_elem(from, i-idx));
     }
-    into->size = new_size;
 }
 
-void push(int num, Vector* vec) {
-    insert_num(num, vec->size, vec);
+void push(Vector* vec, void* num) {
+    insert_num(vec, vec->length, num);
 }
 
-void push_front(int num, Vector* vec) {
-    insert_num(num, 0, vec);
+void push_front(Vector* vec, void* num) {
+    insert_num(vec, 0, num);
 }
 
-unsigned int count_vec(int value, Vector* vec) {
-    unsigned int ctr = 0;
-    for (int i=0; i<vec->size; i++) {
-        if (vec->data[i] == value) {
+int count_vec(Vector* vec, void* value) {
+    int ctr = 0;
+    for (int i=0; i<vec->length; i++) {
+        void* vec_elem = get_vec_elem(vec, i);
+        if (compare_vec_elem(vec_elem, value, vec->elem_size)) {
             ctr++;
         }
     }
@@ -134,34 +211,26 @@ unsigned int count_vec(int value, Vector* vec) {
     return ctr;
 }
 
-void join_vec(Vector* vec1, Vector* vec2) {
-    unsigned int new_size = vec1->size + vec2->size;
-    size_t req_capacity = new_size * sizeof(int);
-    if (req_capacity > vec1->capacity) {
-        vec1->capacity = 2 * req_capacity;
-        vec1->data = (int*)realloc(vec1->data, vec1->capacity);
-    }
-    int j = 0;
-    for (int i=vec1->size; i<new_size; i++, j++) {
-        vec1->data[i] = vec2->data[j];
-    }
-
-    vec1->size = new_size;
+void append_vec(Vector* vec, Vector* other) {
+    insert_vec(other, vec, vec->length);
 }   
 
 void reverse_vec(Vector* vec) {
-    int data[vec->size];
-    for (int i=0; i<vec->size; i++) {
-        data[i] = vec->data[vec->size-(i+1)];
+    void* tmp_data = malloc(vec->capacity);
+    for (int i=0; i<vec->length; i++) {
+        void* elem = get_vec_elem(vec, vec->length-(i+1));
+        _set_data_elem(tmp_data, i, elem, vec->elem_size);
     }
-    for (int i=0; i<vec->size; i++) {
-        vec->data[i] = data[i];
+    for (int i=0; i<vec->length; i++) {
+        _copy_data(tmp_data, vec->data, vec->length, vec->elem_size);
     }
+    free(tmp_data);
 }
 
-int find_value(int value, Vector* vec) {
-    for (int i=0; i<vec->size; i++) {
-        if (vec->data[i] == value) {
+int find_value(Vector* vec, void* value) {
+    for (int i=0; i<vec->length; i++) {
+        void* elem = get_vec_elem(vec, i);
+        if (compare_vec_elem(elem, value, vec->elem_size)) {
             return i;
         }
     }
@@ -169,9 +238,10 @@ int find_value(int value, Vector* vec) {
     return -1;
 }
 
-void remove_value(int value, Vector* vec) {
-    for (int i=0; i<vec->size; i++) {
-        if (vec->data[i] == value) {
+void remove_value(Vector* vec, void* value) {
+    for (int i=0; i<vec->length; i++) {
+        void* elem = get_vec_elem(vec, i);
+        if (compare_vec_elem(elem, value, vec->elem_size)) {
             pop(i, vec);
             return;
         }
@@ -180,15 +250,39 @@ void remove_value(int value, Vector* vec) {
     return;
 }
 
+bool compare_vec_elem(void* elem, void* value, int elem_size) {
+    for (int i=0; i<elem_size; i++) {
+        if (*((char*)elem + i) != *((char*)value + i)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 void print_vec(Vector* vec) {
-    if (vec->size == 0) {
+    if (vec->length == 0) {
         printf("[]");
         return;
     }
     printf("[");
-    for (int i=0; i<vec->size; i++) {
-        printf("%d", vec->data[i]);
-        if (i < vec->size-1) {
+    for (int i=0; i<vec->length; i++) {
+        void* elem = get_vec_elem(vec, i);
+        switch(vec->data_type) {
+        case VEC_INT32:
+            printf("%d", *(int*)elem);
+            break;
+        case VEC_INT64:
+            printf("%lld", *(long long*)elem);
+            break;
+        case VEC_FLOAT:
+            printf("%.3f", *(float*)elem);
+            break;
+        case VEC_DOUBLE:
+            printf("%.3lf", *(double*)elem);
+            break;
+        }
+        if (i < vec->length-1) {
             printf(", ");
         }
         else {
@@ -200,49 +294,89 @@ void print_vec(Vector* vec) {
 void debug_vec(Vector* vec) {
     printf("Data: ");
     print_vec(vec); printf("\n");
+    printf("Data type: ");
+    switch(vec->data_type) {
+    case VEC_INT32:
+        printf("VEC_INT32\n");
+        break;
+    case VEC_INT64:
+        printf("VEC_INT64\n");
+        break;
+    case VEC_FLOAT:
+        printf("VEC_FLOAT\n");
+        break;
+    case VEC_DOUBLE:
+        printf("VEC_DOUBLE\n");
+        break;
+    }
+    printf("Element size: %d Bytes\n", vec->elem_size);
     printf("Addr: %p\n", vec);
-    printf("Size: %d\n", vec->size);
-    printf("Capacity: %ld B\n", vec->capacity);
+    printf("length: %d\n", vec->length);
+    printf("Capacity: %ld Bytes\n", vec->capacity);
 }
 
-bool is_empty(Vector* vec) {
-    if (vec->size == 0) {
+bool is_vec_empty(Vector* vec) {
+    if (vec->length == 0 || vec->data == NULL) {
         return true;
     }
     return false;
 }
 
-void set_element(int value, unsigned int idx, Vector* vec) {
-    assert(idx >=0 && idx < vec->size);
-    vec->data[idx] = value;
+void set_vec_elem(Vector* vec, int idx, void* value) {
+    assert(idx >=0 && idx < vec->length);
+    _set_data_elem(vec->data, idx, value, vec->elem_size);
 }
 
-unsigned int get_len(Vector* vec) {
-    return vec->size;
+int get_vec_len(Vector* vec) {
+    return vec->length;
 }
 
-int get_element(unsigned int idx, Vector* vec) {
-    assert(idx >= 0 && idx < vec->size);
-    return vec->data[idx];
+void* get_vec_elem(Vector* vec, int idx) {
+    assert(idx >= 0 && idx < vec->length);
+    void* elem_ptr = vec->data + idx*vec->elem_size;
+    return elem_ptr;
 }
 
-int get_first(Vector* vec) {
-    return vec->data[0];
+void* get_vec_first(Vector* vec) {
+    return get_vec_elem(vec, 0);
 }
 
-int get_last(Vector* vec) {
-    return vec->data[vec->size - 1];
+void* get_vec_last(Vector* vec) {
+    return get_vec_elem(vec, vec->length-1);
 }
 
-Vector* get_slice(unsigned int start, unsigned int stop, Vector* vec) {
-    assert(start >= 0 && start < vec->size);
-    assert(stop > start && stop <= vec->size);
-    unsigned int size = stop - start;
-    int data[size];
-    for (int i=0; i<size; i++) {
-        data[i] = vec->data[i + start];
+Vector* get_slice(Vector* vec, int start, int stop) {
+    assert(start >= 0 && start < vec->length);
+    assert(stop > start && stop <= vec->length);
+    int length = stop - start;
+    void* tmp_data = malloc(length*vec->elem_size);
+    for (int i=0; i<length; i++) {
+        void* value = get_vec_elem(vec, i+start);
+        _set_data_elem(tmp_data, i, value, vec->elem_size);
     }
-    Vector* slice = vector(data, size);
+    Vector* slice = vector(tmp_data, length, vec->data_type);
+    free(tmp_data);
 
     return slice;
+}
+
+void _copy_data(void* data_from, void* data_to, int length, int elem_size) {
+    assert(data_from != NULL && data_to != NULL);
+    for (int i=0; i<length; i++) {
+        for (int j=0; j<elem_size; j++) {
+            *((char*)data_to + i*elem_size + j) = *((char*)data_from + i*elem_size + j);
+        }
+    }
+}
+
+void* _get_data_elem(void* data, int idx, int elem_size) {
+    void* ptr = data + idx*elem_size;
+    return ptr;
+}
+
+void _set_data_elem(void* data, int idx, void* value, int elem_size) {
+    void* ptr = data + idx*elem_size;
+    for (int i=0; i<elem_size; i++) {
+        *((char*)ptr + i) = *((char*)value + i);
+    }
 }
