@@ -14,7 +14,7 @@ Matrix* matrix(Vector* rows[], unsigned int n_rows) {
     Matrix* mat = (Matrix*)malloc(sizeof(Matrix));
     mat->rows = vectors;
     mat->height = n_rows;
-    mat->width = vectors[0]->size;
+    mat->width = get_vec_len(vectors[0]);
     mat->size = mat->height * mat->width;
     mat->capacity = mat_capacity;
 
@@ -22,7 +22,7 @@ Matrix* matrix(Vector* rows[], unsigned int n_rows) {
 }
 
 Matrix* zero_matrix(unsigned int n_rows, unsigned int n_cols) {
-    Vector* zero_vec = zero_vector(n_cols);
+    Vector* zero_vec = zero_vector(n_cols, VEC_INT32);
     size_t mat_capacity = sizeof(Vector*) * n_rows;
     Vector** rows = (Vector**)malloc(mat_capacity);
     for (int row=0; row<n_rows; row++) {
@@ -49,37 +49,26 @@ void delete_matrix(Matrix* mat) {
     mat = NULL;
 }
 
-Matrix* add_matrix(Matrix* mat1, Matrix* mat2) {
-    assert(mat1->width == mat2->width && mat1->height == mat2->height);
-    Matrix* sum_mat = zero_matrix(mat1->height, mat1->width);
-    for (int row=0; row<mat1->height; row++) {
-        for (int col=0; col<mat1->width; col++) {
-            int sum = get_mat_elem(row, col, mat1) + get_mat_elem(row, col, mat2);
-            set_mat_elem(sum, row, col, sum_mat);    
-        }
-    }
-
-    return sum_mat;
-}
-
 void print_matrix(Matrix* mat) {
     int* column_widths = _get_columns_width(mat);
     for (int row=0; row<mat->height; row++) {
         for (int col=0; col<mat->width; col++) {
-            int num = get_element(col, mat->rows[row]);
+            void* num = get_vec_elem(mat->rows[row], col);
+            size_t num_length = _get_num_length(num, mat->rows[row]->data_type);
             if (col == 0) {
-                printf("|%d", num);
-                _print_padding(column_widths[col] - _get_int_length(num));
+                printf("|");
+                _print_mat_elem(num, mat->rows[row]->data_type);
+                _print_padding(column_widths[col] - num_length);
                 printf(" ");
             }
             else if (col < mat->width-1) {
-                _print_padding(column_widths[col] - _get_int_length(num));
-                printf("%d", num);
+                _print_padding(column_widths[col] - num_length);
+                _print_mat_elem(num, mat->rows[row]->data_type);
                 printf(" ");
             }
             else if (col == mat->width-1) {
-                _print_padding(column_widths[col] - _get_int_length(num));
-                printf("%d", num);
+                _print_padding(column_widths[col] - num_length);
+                _print_mat_elem(num, mat->rows[row]->data_type);
                 printf("|\n");
             }
         }
@@ -98,21 +87,21 @@ void debug_matrix(Matrix* mat) {
     printf("Capacity: %ld\n\n", mat->capacity);
 }
 
-void set_mat_elem(int value, unsigned int row, unsigned int col, Matrix* mat) {
+void set_mat_elem(void* value, unsigned int row, unsigned int col, Matrix* mat) {
     assert(row >=0 && row <mat->height);
     assert(col >=0 && col <mat->width);
-    set_element(value, col, mat->rows[row]);
+    set_vec_elem(mat->rows[row], col, value);
 }
 
-int get_mat_elem(unsigned int row, unsigned int col, Matrix* mat) {
+void* get_mat_elem(unsigned int row, unsigned int col, Matrix* mat) {
     assert(row >=0 && row < mat->height);
     assert(col >=0 && col < mat->width);
-    return get_element(col, mat->rows[row]);
+    return get_vec_elem(mat->rows[row], col);
 }
 
 bool _is_empty_vec_in_arr(Vector* rows[], unsigned int n_rows) {
     for (int i=0; i<n_rows; i++) {
-        if (rows[i] == NULL || is_empty(rows[i])) {
+        if (is_vec_empty(rows[i])) {
             return true;
         }
     }
@@ -121,9 +110,9 @@ bool _is_empty_vec_in_arr(Vector* rows[], unsigned int n_rows) {
 }
 
 bool _is_matrix_shape_valid(Vector* rows[], unsigned int n_rows) {
-    unsigned int n_cols = get_len(rows[0]);
+    unsigned int n_cols = get_vec_len(rows[0]);
     for (int i=1; i<n_rows; i++) {
-        if (n_cols != get_len(rows[i])) {
+        if (n_cols != get_vec_len(rows[i])) {
             return false;
         }
     }
@@ -137,9 +126,23 @@ void _print_padding(int n) {
     }
 }
 
-size_t _get_int_length(int num) {
+size_t _get_num_length(void* num, VecDataType dt) {
     char str_buff[255];
-    snprintf(str_buff, 255, "%d", num);
+    switch (dt)
+    {
+    case VEC_INT32:
+        snprintf(str_buff, 255, "%d", *(int*)num);
+        break;
+    case VEC_INT64:
+        snprintf(str_buff, 255, "%lld", *(long long*)num);
+        break;
+    case VEC_FLOAT:
+        snprintf(str_buff, 255, "%f", *(float*)num);
+        break;
+    case VEC_DOUBLE:
+        snprintf(str_buff, 255, "%lf", *(double*)num);
+        break;
+    }
 
     return strlen(str_buff);
 }
@@ -149,8 +152,9 @@ int* _get_columns_width(Matrix* mat) {
     for (int col=0; col<mat->width; col++ ) {
         char str_buff[255];
         for (int row=0; row<mat->height; row++) {
-            snprintf(str_buff, 255, "%d", get_element(col, mat->rows[row]));
-            int current_width = strlen(str_buff);
+            void* elem = get_vec_elem(mat->rows[row], col);
+            size_t elem_len = _get_num_length(elem, mat->rows[row]->data_type);
+            int current_width = elem_len;
             if (current_width > column_widths[col]) {
                 column_widths[col] = current_width;
             }
@@ -158,4 +162,21 @@ int* _get_columns_width(Matrix* mat) {
     }
 
     return column_widths;
+}
+
+void _print_mat_elem(void* elem, VecDataType dt) {
+    switch(dt) {
+    case VEC_INT32:
+        printf("%d", *(int*)elem);
+        break;
+    case VEC_INT64:
+        printf("%lld", *(long long*)elem);
+        break;
+    case VEC_FLOAT:
+        printf("%0.2f", *(float*)elem);
+        break;
+    case VEC_DOUBLE:
+        printf("%0.2lf", *(double*)elem);
+        break;
+    }
 }
