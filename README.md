@@ -43,3 +43,27 @@ Every enum value corresponds to existing C basic data type:
 * `VEC_DOUBLE` - double
 
 See the documentation for Vector [here](vector/VECTOR.md).
+
+## Matrix
+
+This library extends functionalities of `Vector` to make `Matrix` structure.
+
+```c
+typedef struct Matrix {
+    Vector** rows;
+    unsigned int height;
+    unsigned int width;
+    unsigned int size;
+    size_t capacity;
+} Matrix;
+```
+
+Matrix has 5 fields:
+
+`rows` - pointer to an array of `Vector` structs
+`height` - integer value representing number of rows
+`width` - integer value representing number of columns
+`size` - total number of elements in matrix
+`capacity` - space reserved by matrix fields
+
+See the documentation for Matrix [here](matrix/MATRIX.md).

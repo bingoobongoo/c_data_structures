@@ -84,16 +84,16 @@ void debug_matrix(Matrix* mat) {
     printf("Dismensions: [%dx%d]\n", mat->height, mat->width);
     printf("Size: %d\n", mat->size);
     printf("Addr: %p\n", mat);
-    printf("Capacity: %ld\n\n", mat->capacity);
+    printf("Capacity: %ld Bytes\n\n", mat->capacity);
 }
 
-void set_mat_elem(void* value, unsigned int row, unsigned int col, Matrix* mat) {
+void set_mat_elem(Matrix* mat, unsigned int row, unsigned int col, void* value) {
     assert(row >=0 && row <mat->height);
     assert(col >=0 && col <mat->width);
     set_vec_elem(mat->rows[row], col, value);
 }
 
-void* get_mat_elem(unsigned int row, unsigned int col, Matrix* mat) {
+void* get_mat_elem(Matrix* mat, unsigned int row, unsigned int col) {
     assert(row >=0 && row < mat->height);
     assert(col >=0 && col < mat->width);
     return get_vec_elem(mat->rows[row], col);

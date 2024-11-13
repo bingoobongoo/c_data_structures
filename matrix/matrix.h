@@ -21,9 +21,9 @@ void print_matrix(Matrix* mat);
 
 void debug_matrix(Matrix* mat);
 
-void set_mat_elem(void* value, unsigned int row, unsigned int col, Matrix* mat);
+void set_mat_elem(Matrix* mat, unsigned int row, unsigned int col, void* value);
 
-void* get_mat_elem(unsigned int row, unsigned int col, Matrix* mat);
+void* get_mat_elem(Matrix* mat, unsigned int row, unsigned int col);
 
 bool _is_empty_vec_in_arr(Vector* rows[], unsigned int n_rows);
 
