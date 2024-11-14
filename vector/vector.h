@@ -34,6 +34,8 @@ Vector* copy_vec(Vector* vec);
 
 void assign_vec(Vector* old_vec, Vector* new_vec);
 
+Vector* add_vector(Vector* vec1, Vector* vec2);
+
 void pop(int idx, Vector* vec);
 
 void insert_num(Vector* vec, int idx, void* num);

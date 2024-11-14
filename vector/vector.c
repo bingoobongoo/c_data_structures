@@ -148,6 +148,34 @@ void assign_vec(Vector* old_vec, Vector* new_vec) {
     _copy_data(new_vec->data, old_vec->data, old_vec->length, old_vec->elem_size);
 }
 
+Vector* add_vector(Vector* vec1, Vector* vec2) {
+    assert(vec1->data_type == vec2->data_type);
+    void* elem_sum = malloc(vec1->capacity);
+    for (int i=0; i<vec1->length; i++) {
+        void* elem1 = get_vec_elem(vec1, i);
+        void* elem2 = get_vec_elem(vec2, i);
+        switch(vec1->data_type) {
+        case VEC_INT32:
+            *((int*)elem_sum + i) = *(int*)elem1 + *(int*)elem2;
+            break;
+        case VEC_INT64:
+            *((long long*)elem_sum + i) = *(long long*)elem1 + *(long long*)elem2;
+            break;
+        case VEC_FLOAT:
+            *((float*)elem_sum + i) = *(float*)elem1 + *(float*)elem2;            
+            break;
+        case VEC_DOUBLE:
+            *((double*)elem_sum + i) = *(double*)elem1 + *(double*)elem2;            
+            break;             
+        }
+    }
+
+    Vector* sum = vector(elem_sum, vec1->length, vec1->data_type);
+    free(elem_sum);
+
+    return sum;
+}
+
 void pop(int idx, Vector* vec) {
     assert(idx >= 0 && idx < vec->length);
     int new_size = vec->length - 1;

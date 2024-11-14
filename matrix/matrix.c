@@ -40,6 +40,19 @@ Matrix* zero_matrix(unsigned int n_rows, unsigned int n_cols) {
     return mat;
 }
 
+Matrix* copy_matrix(Matrix* mat) {
+    Vector* data[mat->height];
+    for (int i=0; i<mat->height; i++) {
+        data[i] = copy_vec(mat->rows[i]);
+    }
+    Matrix* copy = matrix(data, mat->height);
+    for (int i=0; i<mat->height; i++) {
+        delete_vec(data[i]);
+    }
+
+    return copy;
+}
+
 void delete_matrix(Matrix* mat) {
     for (int i=0; i<mat->height; i++) {
         delete_vec(mat->rows[i]);
@@ -47,6 +60,33 @@ void delete_matrix(Matrix* mat) {
     free(mat->rows);
     free(mat);
     mat = NULL;
+}
+
+Matrix* add_matrix(Matrix* mat1, Matrix* mat2) {
+    Vector* new_rows[mat1->height];
+    for (int row=0; row<mat1->height; row++) {
+        new_rows[row] = add_vector(mat1->rows[row], mat2->rows[row]);
+    }
+    Matrix* sum = matrix(new_rows, mat1->height);
+    _free_mat_data(new_rows, mat1->height);
+
+    return sum;
+}
+
+Matrix* transpose_matrix(Matrix* mat) {
+    Vector* new_rows[mat->width];
+    for (int i=0; i<mat->width; i++) {
+        new_rows[i] = vector(NULL, 0, mat->rows[0]->data_type);
+    }
+    for (int i=0; i<mat->height; i++) {
+        for (int j=0; j<mat->width; j++) {
+            push(new_rows[j], get_mat_elem(mat, i, j));
+        }
+    }
+    Matrix* transposed = matrix(new_rows, mat->width);
+    _free_mat_data(new_rows, mat->width);
+    return transposed;
+
 }
 
 void print_matrix(Matrix* mat) {
@@ -178,5 +218,11 @@ void _print_mat_elem(void* elem, VecDataType dt) {
     case VEC_DOUBLE:
         printf("%0.2lf", *(double*)elem);
         break;
+    }
+}
+
+void _free_mat_data(Vector** data, int len) {
+    for (int i=0; i<len; i++) {
+        delete_vec(data[i]);
     }
 }

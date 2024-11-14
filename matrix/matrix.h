@@ -15,7 +15,13 @@ Matrix* matrix(Vector* rows[], unsigned int n_rows);
 
 Matrix* zero_matrix(unsigned int n_rows, unsigned int n_cols);
 
+Matrix* copy_matrix(Matrix* mat);
+
 void delete_matrix(Matrix* mat);
+
+Matrix* add_matrix(Matrix* mat1, Matrix* mat2);
+                         
+Matrix* transpose_matrix(Matrix* mat);
 
 void print_matrix(Matrix* mat);
 
@@ -36,3 +42,5 @@ size_t _get_num_length(void* num, VecDataType dt);
 int* _get_columns_width(Matrix* mat);
 
 void _print_mat_elem(void* elem, VecDataType dt);
+
+void _free_mat_data(Vector** data, int len);
