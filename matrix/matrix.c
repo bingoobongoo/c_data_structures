@@ -17,7 +17,7 @@ Matrix* matrix(Vector* rows[], unsigned int n_rows) {
     mat->width = get_vec_len(vectors[0]);
     mat->size = mat->height * mat->width;
     mat->capacity = mat_capacity;
-
+    mat->data_type = vectors[0]->data_type;
     return mat;
 }
 
@@ -28,7 +28,6 @@ Matrix* zero_matrix(unsigned int n_rows, unsigned int n_cols) {
     for (int row=0; row<n_rows; row++) {
         rows[row] = copy_vec(zero_vec);
     }
-    delete_vec(zero_vec);
 
     Matrix* mat = (Matrix*)malloc(sizeof(Matrix));
     mat->rows = rows;
@@ -36,6 +35,9 @@ Matrix* zero_matrix(unsigned int n_rows, unsigned int n_cols) {
     mat->width = n_cols;
     mat->size = n_rows * n_cols;
     mat->capacity = mat_capacity;
+    mat->data_type = zero_vec->data_type;
+
+     delete_vec(zero_vec);
 
     return mat;
 }
@@ -63,6 +65,7 @@ void delete_matrix(Matrix* mat) {
 }
 
 Matrix* add_matrix(Matrix* mat1, Matrix* mat2) {
+    assert(mat1->data_type == mat2->data_type);
     Vector* new_rows[mat1->height];
     for (int row=0; row<mat1->height; row++) {
         new_rows[row] = add_vector(mat1->rows[row], mat2->rows[row]);
@@ -73,20 +76,96 @@ Matrix* add_matrix(Matrix* mat1, Matrix* mat2) {
     return sum;
 }
 
-Matrix* transpose_matrix(Matrix* mat) {
-    Vector* new_rows[mat->width];
-    for (int i=0; i<mat->width; i++) {
+Matrix* mul_matrix(Matrix* mat1, Matrix* mat2) {
+    assert(mat1->data_type == mat2->data_type);
+    assert(mat1->width == mat2->height);
+    Matrix* mul_mat = zero_matrix(mat1->height, mat2->width);
+    mul_mat->data_type = mat1->data_type;
+    // TODO : add data type castring for vectors
+    for (int i=0; i<mul_mat->height; i++) {
+        mul_mat->rows[i]->data_type = mul_mat->data_type;
+    }
+
+    for (int row = 0; row < mul_mat->height; row++) {
+        for (int col = 0; col < mul_mat->width; col++) {
+            switch (mul_mat->data_type) {
+            case VEC_INT32: {
+                int sum = 0;
+                for (int i = 0; i < mat1->width; i++) {
+                    int elem1 = *(int*)get_mat_elem(mat1, row, i);
+                    int elem2 = *(int*)get_mat_elem(mat2, i, col);
+                    sum += elem1 * elem2;
+                }
+                int* result = malloc(sizeof(int));
+                *result = sum;
+                set_mat_elem(mul_mat, row, col, result);
+                free(result);
+                break;
+            }
+            case VEC_INT64: {
+                long long sum = 0;
+                for (int i = 0; i < mat1->width; i++) {
+                    long long elem1 = *(long long*)get_mat_elem(mat1, row, i);
+                    long long elem2 = *(long long*)get_mat_elem(mat2, i, col);
+                    sum += elem1 * elem2;
+                }
+                long long* result = malloc(sizeof(long long));
+                *result = sum;
+                set_mat_elem(mul_mat, row, col, result);
+                free(result);
+                break;
+            }
+            case VEC_FLOAT: {
+                float sum = 0.0f;
+                for (int i = 0; i < mat1->width; i++) {
+                    float elem1 = *(float*)get_mat_elem(mat1, row, i);
+                    float elem2 = *(float*)get_mat_elem(mat2, i, col);
+                    sum += elem1 * elem2;
+                }
+                float* result = malloc(sizeof(float));
+                *result = sum;
+                set_mat_elem(mul_mat, row, col, result);
+                free(result);
+                break;
+            }
+            case VEC_DOUBLE: {
+                double sum = 0.0;
+                for (int i = 0; i < mat1->width; i++) {
+                    double elem1 = *(double*)get_mat_elem(mat1, row, i);
+                    double elem2 = *(double*)get_mat_elem(mat2, i, col);
+                    sum += elem1 * elem2;
+                }
+                double* result = malloc(sizeof(double));
+                *result = sum;
+                set_mat_elem(mul_mat, row, col, result);
+                free(result);
+                break;
+            }
+            }
+        }
+    }
+
+    return mul_mat;
+}
+
+void transpose_matrix(Matrix* mat) {
+    int new_height = mat->width;
+    int new_width = mat->height;
+    Vector** new_rows = malloc(new_height * sizeof(Vector*));
+    for (int i=0; i<new_height; i++) {
         new_rows[i] = vector(NULL, 0, mat->rows[0]->data_type);
     }
-    for (int i=0; i<mat->height; i++) {
-        for (int j=0; j<mat->width; j++) {
+    for (int i=0; i<new_width; i++) {
+        for (int j=0; j<new_height; j++) {
             push(new_rows[j], get_mat_elem(mat, i, j));
         }
     }
-    Matrix* transposed = matrix(new_rows, mat->width);
-    _free_mat_data(new_rows, mat->width);
-    return transposed;
+    _free_mat_data(mat->rows, mat->height);
+    free(mat->rows);
 
+    mat->rows = new_rows;
+    mat->height = new_height;
+    mat->width = new_width;
 }
 
 void print_matrix(Matrix* mat) {

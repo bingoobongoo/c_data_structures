@@ -8,6 +8,7 @@ typedef struct Matrix {
     unsigned int height;
     unsigned int width;
     unsigned int size;
+    VecDataType data_type;
     size_t capacity;
 } Matrix;
 
@@ -20,8 +21,10 @@ Matrix* copy_matrix(Matrix* mat);
 void delete_matrix(Matrix* mat);
 
 Matrix* add_matrix(Matrix* mat1, Matrix* mat2);
+
+Matrix* mul_matrix(Matrix* mat1, Matrix* mat2);
                          
-Matrix* transpose_matrix(Matrix* mat);
+void transpose_matrix(Matrix* mat);
 
 void print_matrix(Matrix* mat);
 
