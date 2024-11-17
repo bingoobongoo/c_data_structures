@@ -128,6 +128,149 @@ void delete_vec(Vector* vec) {
     vec = NULL;
 }
 
+void cast_vec_dt(Vector* vec, VecDataType dt) {
+    size_t req_cap = vec->length * 8;
+    void* cast_data = calloc(vec->length, 8);
+
+    switch (vec->data_type) {
+    case VEC_INT32: {
+        int* vec_arr = calloc(vec->length, sizeof(int));
+        for (int i=0; i<vec->length; i++) {
+            vec_arr[i] = *(int*)get_vec_elem(vec, i);
+        }
+        switch (dt) {
+            case VEC_INT32:
+                break;
+            case VEC_INT64:
+                for (int i=0; i<vec->length; i++) {
+                    long long value = vec_arr[i];
+                    _set_data_elem(cast_data, i, &value, sizeof(long long));
+                }
+                break;
+            case VEC_FLOAT:
+                for (int i=0; i<vec->length; i++) {
+                    float value = vec_arr[i];
+                    _set_data_elem(cast_data, i, &value, sizeof(float));
+                }
+                break;
+            case VEC_DOUBLE:
+                for (int i=0; i<vec->length; i++) {
+                    double value = vec_arr[i];
+                    _set_data_elem(cast_data, i, &value, sizeof(double));
+                }
+                break;
+        }
+        free(vec_arr);
+    }
+    break;
+    case VEC_INT64: {
+        long long* vec_arr = calloc(vec->length, sizeof(long long));
+        for (int i=0; i<vec->length; i++) {
+            vec_arr[i] = *(long long*)get_vec_elem(vec, i);
+        }
+        switch (dt) {
+            case VEC_INT32:
+                for (int i=0; i<vec->length; i++) {
+                    int value = vec_arr[i];
+                    _set_data_elem(cast_data, i, &value, sizeof(int));
+                }
+                break;
+            case VEC_INT64:
+                break;
+            case VEC_FLOAT:
+                for (int i=0; i<vec->length; i++) {
+                    float value = vec_arr[i];
+                    _set_data_elem(cast_data, i, &value, sizeof(float));
+                }
+                break;
+            case VEC_DOUBLE:
+                for (int i=0; i<vec->length; i++) {
+                    double value = vec_arr[i];
+                    _set_data_elem(cast_data, i, &value, sizeof(double));
+                }
+                break;
+        }
+        free(vec_arr);
+    }
+    break;
+    case VEC_FLOAT: {
+        float* vec_arr = calloc(vec->length, sizeof(float));
+        for (int i=0; i<vec->length; i++) {
+            vec_arr[i] = *(float*)get_vec_elem(vec, i);
+        }
+        switch (dt) {
+            case VEC_INT32:
+                for (int i=0; i<vec->length; i++) {
+                    int value = vec_arr[i];
+                    _set_data_elem(cast_data, i, &value, sizeof(int));
+                }
+                break;
+            case VEC_INT64:
+                for (int i=0; i<vec->length; i++) {
+                    long long value = vec_arr[i];
+                    _set_data_elem(cast_data, i, &value, sizeof(long long));
+                }
+                break;
+            case VEC_FLOAT:
+                break;
+            case VEC_DOUBLE:
+                for (int i=0; i<vec->length; i++) {
+                    double value = vec_arr[i];
+                    _set_data_elem(cast_data, i, &value, sizeof(double));
+                }
+                break;
+        }
+        free(vec_arr);
+    }
+    break;
+    case VEC_DOUBLE: {
+        double* vec_arr = calloc(vec->length, sizeof(double));
+        for (int i=0; i<vec->length; i++) {
+            vec_arr[i] = *(double*)get_vec_elem(vec, i);
+        }
+        switch (dt) {
+            case VEC_INT32:
+                for (int i=0; i<vec->length; i++) {
+                    int value = vec_arr[i];
+                    _set_data_elem(cast_data, i, &value, sizeof(int));
+                }
+                break;
+            case VEC_INT64:
+                for (int i=0; i<vec->length; i++) {
+                    long long value = vec_arr[i];
+                    _set_data_elem(cast_data, i, &value, sizeof(long long));
+                }
+                break;
+            case VEC_FLOAT:
+                for (int i=0; i<vec->length; i++) {
+                    float value = vec_arr[i];
+                    _set_data_elem(cast_data, i, &value, sizeof(float));
+                }
+                break;
+            case VEC_DOUBLE:
+                break;
+        }
+        free(vec_arr);
+    }
+    break;
+    }
+    
+    free(vec->data);
+    vec->data = cast_data;
+    vec->data_type = dt;
+    vec->capacity = req_cap;
+    switch (dt) {
+        case VEC_INT32:
+        case VEC_FLOAT:
+            vec->elem_size = 4;
+            break;
+        case VEC_INT64:
+        case VEC_DOUBLE:
+            vec->elem_size = 8;
+            break;
+    }
+}
+
 Vector* copy_vec(Vector* vec) {
     int length = vec->length;
     void* tmp_data = malloc(vec->capacity);

@@ -30,6 +30,8 @@ void clear_vec(Vector* vec);
 
 void delete_vec(Vector* vec);
 
+void cast_vec_dt(Vector* vec, VecDataType dt);
+
 Vector* copy_vec(Vector* vec);
 
 void assign_vec(Vector* old_vec, Vector* new_vec);
